@@ -1,4 +1,7 @@
 
+using BpnTrade.Api.DI;
+using BpnTrade.Api.Endpoints;
+
 namespace BpnTrade.Api
 {
     public class Program
@@ -14,6 +17,12 @@ namespace BpnTrade.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.RegisterMapper();
+            builder.Services.RegisterDbContext();
+            builder.Services.RegisterRepositories();
+            builder.Services.RegisterUnitOfWork();
+            builder.Services.RegisterServices();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -23,8 +32,9 @@ namespace BpnTrade.Api
                 app.UseSwaggerUI();
             }
 
-            app.UseAuthorization();
+            app.MapOrderEndpoints();
 
+            app.UseAuthorization();
 
             app.MapControllers();
 
