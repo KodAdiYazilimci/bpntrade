@@ -1,0 +1,6 @@
+@BpnTrade.Api_HostAddress = http://localhost:5138
+
+GET {{BpnTrade.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
