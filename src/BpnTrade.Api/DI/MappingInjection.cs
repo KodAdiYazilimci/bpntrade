@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 
+using BpnTrade.Api.Configuration;
+
 namespace BpnTrade.Api.DI
 {
     public static class MappingInjection
