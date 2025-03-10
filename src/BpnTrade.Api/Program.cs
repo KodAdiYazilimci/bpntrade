@@ -1,6 +1,9 @@
 
 using BpnTrade.Api.DI;
 using BpnTrade.Api.Endpoints;
+using BpnTrade.App.Persistence;
+
+using Microsoft.EntityFrameworkCore;
 
 namespace BpnTrade.Api
 {
@@ -25,6 +28,15 @@ namespace BpnTrade.Api
             builder.Services.RegisterUnitOfWork();
             builder.Services.RegisterServices();
             builder.Services.RegisterProductProviders();
+
+            builder.Services.AddDbContext<BpnContext>(options =>
+            {
+                var serviceProvider = builder.Services.BuildServiceProvider();
+
+                var connectionString = serviceProvider.GetRequiredService<IConfiguration>().GetConnectionString("Default");
+
+                options.UseSqlServer(connectionString);
+            });
 
             var app = builder.Build();
 
