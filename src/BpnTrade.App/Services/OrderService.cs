@@ -23,6 +23,31 @@ namespace BpnTrade.App.Services
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<ResultDto<CompleteOrderResponseDto>> CompleteOrderAsync(CompleteOrderRequestDto dto, CancellationToken cancellationToken = default)
+        {
+            var orderRepository = _unitOfWork.GetRepository<IOrderRepository>();
+
+            var entity = await orderRepository.GetAsync(dto.OrderId);
+
+            if (entity == null)
+            {
+                return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("ORD001", "Sipariş bulunamadı"));
+            }
+
+            if (entity.PaymentDate.HasValue)
+            {
+                return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("PAY001", "Sipariş zaten ödenmiş"));
+            }
+
+            entity.PaymentDate  = DateTime.Now;
+
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            var resultDto = new CompleteOrderResponseDto();
+
+            return ResultRoot.Success(resultDto);
+        }
+
         public async Task<ResultDto<CreateOrderResponseDto>> CreateAsync(CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
         {
             var orderRepository = _unitOfWork.GetRepository<IOrderRepository>();
