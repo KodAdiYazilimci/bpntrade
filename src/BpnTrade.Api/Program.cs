@@ -1,6 +1,8 @@
 
 using BpnTrade.Api.DI;
 using BpnTrade.Api.Endpoints;
+using BpnTrade.Api.Handlers;
+using BpnTrade.Api.Middlewares;
 using BpnTrade.App.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +41,9 @@ namespace BpnTrade.Api
             });
 
             var app = builder.Build();
+
+            app.UseGlobalExceptionHandler();
+            app.UseLoggerMiddleware();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
