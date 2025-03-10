@@ -14,11 +14,11 @@ namespace BpnTrade.Api.Endpoints
 
         public static RouteGroupBuilder MapGetProductsEndpoint(this RouteGroupBuilder builder)
         {
-            builder.MapGet("/", async (IOrderService orderService) =>
+            builder.MapGet("/", async (IProductService productService) =>
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-                var result = await orderService.CreateAsync(dto, cancellationTokenSource.Token);
+                var result = await productService.GetProductsAsync(cancellationTokenSource.Token);
 
                 return result.IsSuccess ? Results.Ok(result.Data) : Results.BadRequest(result.Error);
             });
