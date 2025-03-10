@@ -3,6 +3,7 @@
     public class CreateOrderRequestDto
     {
         public int CustomerId { get; set; }
+        public string Currency { get; set; }
         public List<CreateOrderItemRequestDto> OrderItems { get; set; }
     }
 

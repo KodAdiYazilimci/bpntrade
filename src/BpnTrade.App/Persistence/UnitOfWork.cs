@@ -1,4 +1,6 @@
-﻿using BpnTrade.Domain.Persistence;
+﻿using BpnTrade.Domain.Dto;
+using BpnTrade.Domain.Persistence;
+using BpnTrade.Domain.Roots;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,11 +20,27 @@ namespace BpnTrade.App.Persistence
             return _serviceProvider.GetRequiredService<TRepository>();
         }
 
-        public async Task SaveAsync(CancellationToken cancellationToken = default)
+        public async Task<ResultDto> SaveAsync(CancellationToken cancellationToken = default)
         {
             var dbContext = _serviceProvider.GetRequiredService<BpnContext>();
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            using (var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken))
+            {
+                try
+                {
+                    await dbContext.SaveChangesAsync(cancellationToken);
+
+                    await transaction.CommitAsync(cancellationToken);
+
+                    return ResultRoot.Success();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+
+                    return ResultRoot.Failure(new ErrorDto("DB", $"{ex.Message} {ex.InnerException?.Message}"));
+                }
+            }
         }
     }
 }

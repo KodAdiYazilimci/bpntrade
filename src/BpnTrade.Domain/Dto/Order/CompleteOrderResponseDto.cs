@@ -2,5 +2,6 @@
 {
     public class CompleteOrderResponseDto
     {
+        public ErrorDto? Error { get; set; }
     }
 }

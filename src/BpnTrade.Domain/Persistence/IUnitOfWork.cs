@@ -1,8 +1,10 @@
-﻿namespace BpnTrade.Domain.Persistence
+﻿using BpnTrade.Domain.Dto;
+
+namespace BpnTrade.Domain.Persistence
 {
     public interface IUnitOfWork
     {
         TRepository GetRepository<TRepository>();
-        Task SaveAsync(CancellationToken cancellationToken = default);
+        Task<ResultDto> SaveAsync(CancellationToken cancellationToken = default);
     }
 }
