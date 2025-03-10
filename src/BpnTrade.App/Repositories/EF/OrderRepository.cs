@@ -6,13 +6,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BpnTrade.App.Repositories.EF
 {
-    public class OrderRepository : RepositoryBaseAsync<OrderEntity>
+    public class OrderRepository : RepositoryBaseAsync<OrderEntity>, IOrderRepository
     {
         private readonly BpnContext _dbContext;
 
         public OrderRepository(BpnContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public Task Create(OrderEntity entity, CancellationToken cancellationToken = default)
+        {
+            return Create(entity, cancellationToken);
+        }
+
+        public Task Update(long id, OrderEntity entity, CancellationToken cancellationToken = default)
+        {
+            return Update(id, entity, cancellationToken);
         }
 
         public override async Task UpdateAsync(long id, OrderEntity entity, CancellationToken cancellationToken = default)

@@ -1,19 +1,44 @@
-﻿using BpnTrade.Domain.Dto;
-using BpnTrade.Domain.Services;
+﻿using AutoMapper;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BpnTrade.Domain.Dto;
+using BpnTrade.Domain.Dto.Order;
+using BpnTrade.Domain.Entities;
+using BpnTrade.Domain.Persistence;
+using BpnTrade.Domain.Repositories.EF;
+using BpnTrade.Domain.Roots;
+using BpnTrade.Domain.Services;
 
 namespace BpnTrade.App.Services
 {
     public class OrderService : IOrderService
     {
-        public Task<ResultDto<OrderDto>> CrateAsync(OrderDto orderDto, CancellationToken cancellationToken = default)
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public OrderService(
+            IMapper mapper, 
+            IUnitOfWork unitOfWork)
         {
-            throw new NotImplementedException();
+            _mapper = mapper;
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<ResultDto<CreateOrderResponseDto>> CreateAsync(CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
+        {
+            var orderRepository = _unitOfWork.GetRepository<IOrderRepository>();
+
+            var entity = _mapper.Map<CreateOrderRequestDto, OrderEntity>(dto);
+
+            await orderRepository.CreateAsync(entity, cancellationToken);
+
+            await _unitOfWork.SaveAsync(cancellationToken);
+
+            var resultDto = new CreateOrderResponseDto
+            {
+                Id = entity.Id
+            };
+
+            return ResultRoot.Success(resultDto);
         }
     }
 }
