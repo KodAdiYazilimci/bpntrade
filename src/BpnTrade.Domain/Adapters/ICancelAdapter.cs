@@ -1,15 +1,10 @@
 ﻿using BpnTrade.Domain.Dto;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BpnTrade.Domain.Dto.Integration;
 
 namespace BpnTrade.Domain.Adapters
 {
     public interface ICancelAdapter
     {
-        Task<ResultDto<CancelResponseDto>>
+        Task<ResultDto<CancelResponseDto>> CancelAsync(CancelRequestDto requestDto, CancellationToken cancellationToken = default);
     }
 }

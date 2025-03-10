@@ -13,7 +13,8 @@ namespace BpnTrade.Api.DI
                 .AddScoped<IProductAdapter, BpnProductAdapter>()
                 .AddScoped<IBalanceAdapter, BalanceAdapter>()
                 .AddScoped<ICompleteAdapter, CompleteAdapter>()
-                .AddScoped<IPreOrderAdapter, PreOrderAdapter>();
+                .AddScoped<IPreOrderAdapter, PreOrderAdapter>()
+                .AddScoped<ICancelAdapter, CancelAdapter>();
 
             services.AddScoped<IPaymentFacade, BpnPaymentFacade>();
 

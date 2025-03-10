@@ -11,15 +11,18 @@ namespace BpnTrade.App.Facades
         private readonly IBalanceAdapter _balanceAdapter;
         private readonly IPreOrderAdapter _preOrderAdapter;
         private readonly ICompleteAdapter _completeAdapter;
+        private readonly ICancelAdapter _cancelAdapter;
 
         public BpnPaymentFacade(
             IBalanceAdapter balanceAdapter,
             IPreOrderAdapter preOrderAdapter,
-            ICompleteAdapter completeAdapter)
+            ICompleteAdapter completeAdapter,
+            ICancelAdapter cancelAdapter)
         {
             _balanceAdapter = balanceAdapter;
             _preOrderAdapter = preOrderAdapter;
             _completeAdapter = completeAdapter;
+            _cancelAdapter = cancelAdapter;
         }
 
         public async Task<ResultDto<ProcessPaymentResponseDto>> ProcessPayment(ProcessPaymentRequestDto requestDto, CancellationToken cancellationToken = default)
