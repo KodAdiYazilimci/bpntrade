@@ -17,11 +17,14 @@ namespace BpnTrade.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddHttpClient();
+
             builder.Services.RegisterMapper();
             builder.Services.RegisterDbContext();
             builder.Services.RegisterRepositories();
             builder.Services.RegisterUnitOfWork();
             builder.Services.RegisterServices();
+            builder.Services.RegisterProductProviders();
 
             var app = builder.Build();
 
@@ -33,6 +36,7 @@ namespace BpnTrade.Api
             }
 
             app.MapOrderEndpoints();
+            app.MapProductEndpoints();
 
             app.UseAuthorization();
 
