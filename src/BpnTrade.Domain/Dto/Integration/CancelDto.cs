@@ -2,17 +2,17 @@
 
 namespace BpnTrade.Domain.Dto.Integration
 {
-    public class CompleteRequestDto
+    public class CancelRequestDto
     {
         public string OrderId { get; set; }
     }
 
-    public class CompleteResponseDto : BpnResponseBase
+    public class CancelResponseDto : BpnResponseBase
     {
-        public CompleteResponseData Data { get; set; }
+        public CancelResponseData Data { get; set; }
     }
 
-    public class CompleteResponseData
+    public class CancelResponseData
     {
         public UserOrderDto Order { get; set; }
         public UserBalanceDto UpdatedBalance { get; set; }
