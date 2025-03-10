@@ -5,6 +5,7 @@
         public int CustomerId { get; set; }
         public string Currency { get; set; }
         public List<CreateOrderItemRequestDto> OrderItems { get; set; }
+        public string UserId { get; set; }
     }
 
     public class CreateOrderItemRequestDto

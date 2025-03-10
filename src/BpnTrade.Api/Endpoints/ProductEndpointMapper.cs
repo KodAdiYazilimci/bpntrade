@@ -21,7 +21,7 @@ namespace BpnTrade.Api.Endpoints
                 var result = await productService.GetProductsAsync(cancellationTokenSource.Token);
 
                 return result.IsSuccess ? Results.Ok(result.Data) : Results.BadRequest(result.Error);
-            });
+            }).RequireAuthorization();
 
             return builder;
         }

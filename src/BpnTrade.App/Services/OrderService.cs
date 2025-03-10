@@ -49,6 +49,11 @@ namespace BpnTrade.App.Services
                 return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("ORD001", "Sipariş bulunamadı"));
             }
 
+            if (!string.Equals(entity.UserId, dto.UserId, StringComparison.OrdinalIgnoreCase))
+            {
+                return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("ORD001", "Geçersiz sipariş"));
+            }
+
             if (entity.PaymentDate.HasValue)
             {
                 return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("PAY001", "Sipariş zaten ödenmiş"));
@@ -121,14 +126,14 @@ namespace BpnTrade.App.Services
             {
                 foreach (var orderItem in dto.OrderItems)
                 {
-                    var existsAndValid = 
+                    var existsAndValid =
                         _products
                         .SelectMany(x => x.Data)
-                        .Any(x => 
-                                x.Id == orderItem.ProductId.ToString() 
-                                && 
-                                x.Currency == dto.Currency 
-                                && 
+                        .Any(x =>
+                                x.Id == orderItem.ProductId.ToString()
+                                &&
+                                x.Currency == dto.Currency
+                                &&
                                 x.Price > 0);
 
                     if (!existsAndValid)
@@ -139,7 +144,7 @@ namespace BpnTrade.App.Services
 
                 return true;
             }
-            
+
             return false;
         }
     }

@@ -29,7 +29,7 @@ namespace BpnTrade.App.Repositories.EF
         {
             var existingEntity = await _dbContext.Orders.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
-            existingEntity.CustomerId = entity.CustomerId;
+            existingEntity.UserId = entity.UserId;
         }
     }
 }

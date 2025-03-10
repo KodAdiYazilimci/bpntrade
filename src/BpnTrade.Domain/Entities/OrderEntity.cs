@@ -2,7 +2,7 @@
 {
     public class OrderEntity : EntityBase
     {
-        public int CustomerId { get; set; }
+        public string UserId { get; set; }
         public DateTime? PaymentDate { get; set; }
 
         public virtual ICollection<OrderItemEntity> OrderItems { get; set; }
