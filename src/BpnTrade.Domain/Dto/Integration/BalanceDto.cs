@@ -1,6 +1,16 @@
-﻿namespace BpnTrade.Domain.Entities.Integration
+﻿namespace BpnTrade.Domain.Dto.Integration
 {
-    public class BalanceEntity
+    public class BalanceRequestDto
+    {
+        public string UserId { get; set; }
+    }
+
+    public class BalanceResponseDto : BpnResponseBase
+    {
+        public BalanceResponseData Data { get; set; }
+    }
+
+    public class BalanceResponseData
     {
         public string UserId { get; set; }
         public decimal TotalBalance { get; set; }

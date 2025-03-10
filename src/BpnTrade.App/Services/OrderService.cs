@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 
 using BpnTrade.Domain.Dto;
+using BpnTrade.Domain.Dto.Integration;
 using BpnTrade.Domain.Dto.Order;
-using BpnTrade.Domain.Entities.Integration;
-using BpnTrade.Domain.Entities.Persistence;
+using BpnTrade.Domain.Entities;
 using BpnTrade.Domain.Persistence;
 using BpnTrade.Domain.Repositories.EF;
 using BpnTrade.Domain.Roots;
@@ -78,7 +78,7 @@ namespace BpnTrade.App.Services
         private bool ValidateProductsExists(CreateOrderRequestDto dto)
         {
             return
-                _memoryCache.TryGetValue("Products", out List<ProductEntity> _products)
+                _memoryCache.TryGetValue("Products", out List<ProductResponseDto> _products)
                 &&
                 _products != null
                 &&

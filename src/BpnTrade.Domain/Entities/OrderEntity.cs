@@ -1,4 +1,4 @@
-﻿namespace BpnTrade.Domain.Entities.Persistence
+﻿namespace BpnTrade.Domain.Entities
 {
     public class OrderEntity : EntityBase
     {

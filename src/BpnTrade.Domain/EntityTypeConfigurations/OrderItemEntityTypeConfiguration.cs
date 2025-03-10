@@ -1,4 +1,4 @@
-﻿using BpnTrade.Domain.Entities.Persistence;
+﻿using BpnTrade.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
