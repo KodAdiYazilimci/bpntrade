@@ -1,5 +1,5 @@
 ﻿using BpnTrade.App.Persistence;
-using BpnTrade.Domain.Entities;
+using BpnTrade.Domain.Entities.Persistence;
 using BpnTrade.Domain.Repositories.EF;
 
 using Microsoft.EntityFrameworkCore;

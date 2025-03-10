@@ -1,10 +1,10 @@
 ﻿using BpnTrade.Domain.Dto;
-using BpnTrade.Domain.Dto.Product;
+using BpnTrade.Domain.Entities.Integration;
 
 namespace BpnTrade.Domain.Services
 {
     public interface IProductService
     {
-        Task<ResultDto<List<ProductDto>>> GetProductsAsync(CancellationToken cancellationToken = default);
+        Task<ResultDto<List<ProductEntity>>> GetProductsAsync(CancellationToken cancellationToken = default);
     }
 }

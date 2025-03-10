@@ -2,6 +2,7 @@
 
 using BpnTrade.Domain.Dto.Order;
 using BpnTrade.Domain.Entities;
+using BpnTrade.Domain.Entities.Persistence;
 
 namespace BpnTrade.Api.Configuration
 {

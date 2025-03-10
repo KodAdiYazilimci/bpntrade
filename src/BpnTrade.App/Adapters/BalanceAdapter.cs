@@ -9,22 +9,22 @@ using Newtonsoft.Json;
 
 namespace BpnTrade.App.Adapters
 {
-    public class BpnProductAdapter : IProductAdapter
+    public class BalanceAdapter : IBalanceAdapter
     {
-        private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public BpnProductAdapter(
-            IHttpClientFactory httpClientFactory,
+        public BalanceAdapter(
+            IHttpClientFactory httpClientFactory, 
             IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
         }
 
-        public async Task<ResultDto<List<ProductEntity>>> GetProductsAsync(CancellationToken cancellationToken = default)
+        public async Task<ResultDto<BalanceEntity>> GetUserBalanceAsync(string userId, CancellationToken cancellationToken = default)
         {
-            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["ProductsEndpointUri"];
+            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["UserBalanceEndpointUri"];
 
             using (var client = _httpClientFactory.CreateClient())
             {
@@ -34,13 +34,13 @@ namespace BpnTrade.App.Adapters
                 {
                     var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<List<ProductEntity>>(content);
+                    var deserializedProducts = JsonConvert.DeserializeObject<BalanceEntity>(content);
 
-                    return ResultRoot.Success<List<ProductEntity>>(deserializedProducts);
+                    return ResultRoot.Success<BalanceEntity>(deserializedProducts);
 
                 }
 
-                return ResultRoot.Failure<List<ProductEntity>>(new ErrorDto("PRD001", "Products couldnt fetch"));
+                return ResultRoot.Failure<BalanceEntity>(new ErrorDto("BLC001", "Balance info couldnt fetch"));
             }
         }
     }

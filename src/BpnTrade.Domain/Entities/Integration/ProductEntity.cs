@@ -1,6 +1,6 @@
-﻿namespace BpnTrade.Domain.Dto.Product
+﻿namespace BpnTrade.Domain.Entities.Integration
 {
-    public class ProductDto
+    public class ProductEntity
     {
         public string Id { get; set; }
         public string Name { get; set; }        

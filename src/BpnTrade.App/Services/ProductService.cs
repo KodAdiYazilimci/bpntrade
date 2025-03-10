@@ -1,6 +1,6 @@
 ﻿using BpnTrade.Domain.Adapters;
 using BpnTrade.Domain.Dto;
-using BpnTrade.Domain.Dto.Product;
+using BpnTrade.Domain.Entities.Integration;
 using BpnTrade.Domain.Roots;
 using BpnTrade.Domain.Services;
 
@@ -21,9 +21,9 @@ namespace BpnTrade.App.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task<ResultDto<List<ProductDto>>> GetProductsAsync(CancellationToken cancellationToken = default)
+        public async Task<ResultDto<List<ProductEntity>>> GetProductsAsync(CancellationToken cancellationToken = default)
         {
-            if (_memoryCache.TryGetValue("Products", out List<ProductDto> _products) && _products.Any())
+            if (_memoryCache.TryGetValue("Products", out List<ProductEntity> _products) && _products.Any())
             {
                 return ResultRoot.Success(_products);
             }
@@ -33,9 +33,9 @@ namespace BpnTrade.App.Services
             return
                 products != null && products.IsSuccess
                 ?
-                ResultRoot.Success<List<ProductDto>>(products.Data)
+                ResultRoot.Success<List<ProductEntity>>(products.Data)
                 : 
-                ResultRoot.Failure<List<ProductDto>>(products.Error);
+                ResultRoot.Failure<List<ProductEntity>>(products.Error);
         }
     }
 }

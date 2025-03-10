@@ -7,7 +7,9 @@ namespace BpnTrade.Api.DI
     {
         public static IServiceCollection RegisterProductProviders(this IServiceCollection services)
         {
-            services.AddScoped<IProductAdapter, BpnProductAdapter>();
+            services
+                .AddScoped<IProductAdapter, BpnProductAdapter>()
+                .AddScoped<IBalanceAdapter, BalanceAdapter>();
 
             return services;
         }

@@ -1,4 +1,4 @@
-﻿namespace BpnTrade.Domain.Entities
+﻿namespace BpnTrade.Domain.Entities.Persistence
 {
     public abstract class EntityBase
     {
