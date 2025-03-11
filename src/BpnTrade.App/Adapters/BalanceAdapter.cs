@@ -10,8 +10,6 @@ using Newtonsoft.Json;
 
 using Polly;
 
-using System.Web.Http;
-
 namespace BpnTrade.App.Adapters
 {
     public class BalanceAdapter : IBalanceAdapter
