@@ -31,6 +31,7 @@ namespace BpnTrade.Api.DI
         public static IServiceCollection RegisterRepositories(this IServiceCollection services)
         {
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             return services;
         }
     }

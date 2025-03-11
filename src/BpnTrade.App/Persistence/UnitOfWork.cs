@@ -2,6 +2,7 @@
 using BpnTrade.Domain.Persistence;
 using BpnTrade.Domain.Roots;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BpnTrade.App.Persistence
@@ -13,6 +14,14 @@ namespace BpnTrade.App.Persistence
         public UnitOfWork(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+        }
+
+        public DbContext Context
+        {
+            get
+            {
+                return _serviceProvider.GetRequiredService<BpnContext>();
+            }
         }
 
         public TRepository GetRepository<TRepository>()

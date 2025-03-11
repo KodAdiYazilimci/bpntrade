@@ -22,7 +22,7 @@ namespace BpnTrade.App.Repositories.EF
 
         public Task Update(long id, OrderEntity entity, CancellationToken cancellationToken = default)
         {
-            return Update(id, entity, cancellationToken);
+            return UpdateAsync(id, entity, cancellationToken);
         }
 
         public override async Task UpdateAsync(long id, OrderEntity entity, CancellationToken cancellationToken = default)
