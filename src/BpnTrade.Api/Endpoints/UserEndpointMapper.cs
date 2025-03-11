@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -8,10 +9,10 @@ namespace BpnTrade.Api.Endpoints
 {
     public static class UserEndpointMapper
     {
-        public static RouteGroupBuilder MapProductEndpoints(this WebApplication app)
+        public static RouteGroupBuilder MapUserEndpoints(this WebApplication app, [FromServices] IConfiguration configuration)
         {
             var group = app.MapGroup("/user")
-                .MapGetProductsEndpoint();
+                .MapLoginEndpoint(configuration);
 
             return group;
         }
@@ -30,15 +31,17 @@ namespace BpnTrade.Api.Endpoints
                     issuer: issuer,
                     audience: audience,
                     claims: new List<Claim> {
-                             new Claim("UserId", "1")
+                        new Claim("UserId", "1")
                     },
-                    expires: DateTime.Now.AddHours(1),
+                    expires: DateTime.Now.AddHours(12),
                     signingCredentials: new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256));
 
-                return Task.FromResult(new
+                var token = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+                return Results.Ok(new
                 {
-                    Token = new JwtSecurityTokenHandler().WriteToken(jwt),
-                    TokenExpireDate = DateTime.Now.AddHours(1)
+                    Token = token,
+                    TokenExpireDate = DateTime.Now.AddHours(12)
                 });
             }).AllowAnonymous();
 
