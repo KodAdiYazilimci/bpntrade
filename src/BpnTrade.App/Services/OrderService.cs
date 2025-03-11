@@ -122,21 +122,21 @@ namespace BpnTrade.App.Services
 
         private bool ValidateProductsExists(CreateOrderRequestDto dto)
         {
-            if (_memoryCache.TryGetValue("Products", out List<ProductResponseDto> _products) && _products.Any())
+            if (_memoryCache.TryGetValue("Products", out ProductResponseDto _productResponse) && _productResponse != null)
             {
                 foreach (var orderItem in dto.OrderItems)
                 {
                     var existsAndValid =
-                        _products
-                        .SelectMany(x => x.Data)
-                        .Any(x =>
+                        _productResponse
+                        .Data
+                        ?.Any(x =>
                                 x.Id == orderItem.ProductId.ToString()
                                 &&
                                 x.Currency == dto.Currency
                                 &&
                                 x.Price > 0);
 
-                    if (!existsAndValid)
+                    if (!(existsAndValid ?? false))
                     {
                         return false;
                     }

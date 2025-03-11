@@ -30,6 +30,8 @@ namespace BpnTrade.App.Services
 
             var products = await _productAdapter.GetProductsAsync(cancellationToken);
 
+            _memoryCache.Set<ProductResponseDto>("Products", products.Data, TimeSpan.FromSeconds(30));
+
             return
                 products != null && products.IsSuccess
                 ?
