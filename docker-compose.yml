@@ -4,3 +4,24 @@ services:
     build:
       context: .
       dockerfile: src/BpnTrade.Api/Dockerfile
+    networks:
+     - internal
+  mssql:
+   container_name: sqlserver-container
+   image: "mcr.microsoft.com/mssql/server:2017-latest"
+   environment:
+    SA_PASSWORD: "SrknAyyildiz@2025_2025**"
+    ACCEPT_EULA: "Y"
+   ports:
+    - "1433:1433"
+   volumes:
+    - dbVolume:/var/opt/mssql
+   networks:
+    - internal
+
+volumes:
+  dbVolume:
+
+networks:
+  internal:
+   driver: bridge
