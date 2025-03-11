@@ -1,7 +1,10 @@
-﻿using BpnTrade.Domain.Dto.Order;
+﻿using BpnTrade.Api.Validations.Order;
+using BpnTrade.Domain.Dto.Order;
 using BpnTrade.Domain.Services;
 
 using Microsoft.AspNetCore.Mvc;
+
+using System.Threading;
 
 namespace BpnTrade.Api.Endpoints
 {
@@ -22,6 +25,11 @@ namespace BpnTrade.Api.Endpoints
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
+                var validationResult = await CreateOrderValidator.Instance.ValidateAsync(dto, cancellationTokenSource.Token);
+
+                if (!validationResult.IsSuccess)
+                    return Results.BadRequest(validationResult.Error);
+
                 dto.UserId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId").Value;
 
                 var result = await orderService.CreateAsync(dto, cancellationTokenSource.Token);
@@ -37,6 +45,11 @@ namespace BpnTrade.Api.Endpoints
             builder.MapPost("/", async ([FromBody] CompleteOrderRequestDto dto, [FromServices] IOrderService orderService, [FromServices] IHttpContextAccessor httpContextAccessor) =>
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+                var validationResult = await CompleteOrderValidator.Instance.ValidateAsync(dto, cancellationTokenSource.Token);
+
+                if (!validationResult.IsSuccess)
+                    return Results.BadRequest(validationResult.Error);
 
                 dto.UserId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId").Value;
 
