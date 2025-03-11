@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 
+using BpnTrade.App.Repositories.EF;
 using BpnTrade.Domain.Adapters;
 using BpnTrade.Domain.Dto;
 using BpnTrade.Domain.Dto.Integration;
@@ -12,6 +13,7 @@ using BpnTrade.Domain.Repositories.EF;
 using BpnTrade.Domain.Roots;
 using BpnTrade.Domain.Services;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace BpnTrade.App.Services
@@ -59,9 +61,25 @@ namespace BpnTrade.App.Services
                 return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("PAY001", "Sipariş zaten ödenmiş"));
             }
 
+            var orderItems =
+                await
+                _unitOfWork
+                .Context
+                .Set<OrderItemEntity>()
+                .Where(x => x.OrderId == dto.OrderId && x.DeleteDate == null)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var totalAmount = orderItems.Sum(x => x.Quantity * x.UnitPrice);
+
+            if (totalAmount < 0)
+            {
+                return ResultRoot.Failure<CompleteOrderResponseDto>(new ErrorDto("BSKT001", "Sipariş tutarı geçersiz"));
+            }
+
             var paymentResult = await _paymentFacade.ProcessPayment(new ProcessPaymentRequestDto()
             {
-                Amount = entity.OrderItems.Sum(x => x.Quantity * x.UnitPrice),
+                Amount = totalAmount,
                 OrderId = entity.Id.ToString(),
                 UserId = dto.UserId
             }, cancellationToken);
@@ -86,7 +104,7 @@ namespace BpnTrade.App.Services
                     OrderId = entity.Id.ToString()
                 }, cancellationToken);
 
-                if (!cancelResult.IsSuccess)
+                if (!cancelResult.IsSuccess || !cancelResult.Data.Success)
                 {
                     resultDto.Error = new ErrorDto(cancelResult.Error.Code, cancelResult.Error.Message, resultDto.Error);
                 }
@@ -103,6 +121,13 @@ namespace BpnTrade.App.Services
         {
             if (!ValidateProductsExists(dto))
                 return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRD002", "Bir ya da daha çok ürün bilgisi bulunamadı"));
+
+            var assignProductPriceResult = AssignProductPrices(dto);
+
+            if (!assignProductPriceResult.IsSuccess)
+            {
+                return assignProductPriceResult;
+            }
 
             var orderRepository = _unitOfWork.GetRepository<IOrderRepository>();
 
@@ -146,6 +171,26 @@ namespace BpnTrade.App.Services
             }
 
             return false;
+        }
+
+        private ResultDto<CreateOrderResponseDto> AssignProductPrices(CreateOrderRequestDto dto)
+        {
+            if (_memoryCache.TryGetValue("Products", out ProductResponseDto _productResponse) && _productResponse != null)
+            {
+                foreach (var orderItem in dto.OrderItems)
+                {
+                    orderItem.UnitPrice = _productResponse.Data.Where(x => x.Id == orderItem.ProductId).FirstOrDefault()?.Price ?? 0;
+
+                    if (orderItem.UnitPrice == 0)
+                    {
+                        return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRC001", "Ürün fiyatı bulunamadı"));
+                    }
+                }
+
+                return ResultRoot.Success(new CreateOrderResponseDto());
+            }
+            else
+                return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRC001", "Ürün fiyatları bulunamadı"));
         }
     }
 }

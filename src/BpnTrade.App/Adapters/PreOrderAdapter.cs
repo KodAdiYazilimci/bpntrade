@@ -6,12 +6,9 @@ using BpnTrade.Domain.Roots;
 using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace BpnTrade.App.Adapters
 {
@@ -34,23 +31,30 @@ namespace BpnTrade.App.Adapters
 
             using (var client = _httpClientFactory.CreateClient())
             {
-                var getResult = 
+                var postResult =
                     await client.PostAsync(
-                        providerEndpoint, 
-                        new StringContent(JsonConvert.SerializeObject(requestDto), Encoding.UTF8, "application/json"), 
+                        providerEndpoint,
+                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver()
+                        }), Encoding.UTF8, "application/json"),
                         cancellationToken);
 
-                if (getResult.IsSuccessStatusCode)
+                if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
+                    var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<PreOrderResponseDto>(content);
+                    var deserializedPreOrder = JsonConvert.DeserializeObject<PreOrderResponseDto>(content);
 
-                    return ResultRoot.Success<PreOrderResponseDto>(deserializedProducts);
-
+                    return
+                        deserializedPreOrder.Success
+                        ?
+                        ResultRoot.Success<PreOrderResponseDto>(deserializedPreOrder)
+                        :
+                        ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", deserializedPreOrder.Message));
                 }
 
-                return ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRD001", "Products couldnt fetch"));
+                return ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", "Preorder couldnt started"));
             }
         }
     }

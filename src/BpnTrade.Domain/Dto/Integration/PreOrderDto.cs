@@ -5,6 +5,7 @@ namespace BpnTrade.Domain.Dto.Integration
     public class PreOrderRequestDto
     {
         public decimal Amount { get; set; }
+
         public string OrderId { get; set; }
     }
 

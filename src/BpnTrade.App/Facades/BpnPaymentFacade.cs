@@ -33,7 +33,7 @@ namespace BpnTrade.App.Facades
                 UserId = requestDto.UserId
             }, cancellationToken);
 
-            if (!balanceCheckResult.IsSuccess)
+            if (!balanceCheckResult.IsSuccess || !balanceCheckResult.Data.Success)
             {
                 return ResultRoot.Failure<ProcessPaymentResponseDto>(balanceCheckResult.Error);
             }
@@ -49,7 +49,7 @@ namespace BpnTrade.App.Facades
                 Amount = requestDto.Amount
             }, cancellationToken);
 
-            if (!preOrderResult.IsSuccess)
+            if (!preOrderResult.IsSuccess || !preOrderResult.Data.Success)
             {
                 return ResultRoot.Failure<ProcessPaymentResponseDto>(preOrderResult.Error);
             }

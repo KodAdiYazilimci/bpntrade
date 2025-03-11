@@ -6,6 +6,7 @@ using BpnTrade.Domain.Roots;
 using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 using System.Text;
 
@@ -30,19 +31,27 @@ namespace BpnTrade.App.Adapters
 
             using (var client = _httpClientFactory.CreateClient())
             {
-                var getResult =
+                var postResult =
                     await client.PostAsync(
                         providerEndpoint,
-                        new StringContent(JsonConvert.SerializeObject(requestDto), Encoding.UTF8, "application/json"),
+                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver()
+                        }), Encoding.UTF8, "application/json"),
                         cancellationToken);
 
-                if (getResult.IsSuccessStatusCode)
+                if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
+                    var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<CompleteResponseDto>(content);
+                    var deserializedCompletion = JsonConvert.DeserializeObject<CompleteResponseDto>(content);
 
-                    return ResultRoot.Success<CompleteResponseDto>(deserializedProducts);
+                    return
+                        deserializedCompletion.Success
+                        ?
+                        ResultRoot.Success<CompleteResponseDto>(deserializedCompletion)
+                        :
+                        ResultRoot.Failure<CompleteResponseDto>(new ErrorDto("CMP001", deserializedCompletion.Message));
 
                 }
 

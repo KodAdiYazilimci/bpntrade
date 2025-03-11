@@ -36,14 +36,18 @@ namespace BpnTrade.App.Adapters
 
                 var getResult = await client.GetAsync(uri, cancellationToken);
 
-                if (getResult.IsSuccessStatusCode)
+                if (getResult.IsSuccessStatusCode || getResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
                     var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<BalanceResponseDto>(content);
+                    var deserializedBalance = JsonConvert.DeserializeObject<BalanceResponseDto>(content);
 
-                    return ResultRoot.Success<BalanceResponseDto>(deserializedProducts);
-
+                    return
+                        deserializedBalance.Success
+                        ?
+                        ResultRoot.Success<BalanceResponseDto>(deserializedBalance)
+                        :
+                        ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC001", deserializedBalance.Message));
                 }
 
                 return ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC001", "Balance info couldnt fetch"));

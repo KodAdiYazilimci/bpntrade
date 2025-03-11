@@ -19,7 +19,8 @@ namespace BpnTrade.Api.Configuration
                         z.OrderItems.Select(x => new OrderItemEntity()
                         {
                             ProductId = x.ProductId,
-                            Quantity = x.Quantity
+                            Quantity = x.Quantity,
+                            UnitPrice = x.UnitPrice
                         }).ToList() 
                         : default));
         }

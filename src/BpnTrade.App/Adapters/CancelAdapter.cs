@@ -6,6 +6,7 @@ using BpnTrade.Domain.Roots;
 using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 using System.Text;
 
@@ -30,23 +31,31 @@ namespace BpnTrade.App.Adapters
 
             using (var client = _httpClientFactory.CreateClient())
             {
-                var getResult =
+                var postResult =
                     await client.PostAsync(
                         providerEndpoint,
-                        new StringContent(JsonConvert.SerializeObject(requestDto), Encoding.UTF8, "application/json"),
+                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                        {
+                            ContractResolver = new CamelCasePropertyNamesContractResolver()
+                        }), Encoding.UTF8, "application/json"),
                         cancellationToken);
 
-                if (getResult.IsSuccessStatusCode)
+                if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
-                    var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
+                    var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<CancelResponseDto>(content);
+                    var deserializedCancellation = JsonConvert.DeserializeObject<CancelResponseDto>(content);
 
-                    return ResultRoot.Success<CancelResponseDto>(deserializedProducts);
+                    return 
+                        deserializedCancellation.Success
+                        ?
+                        ResultRoot.Success<CancelResponseDto>(deserializedCancellation)
+                        :
+                        ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", deserializedCancellation.Message));
 
                 }
 
-                return ResultRoot.Failure<CancelResponseDto>(new ErrorDto("PRD001", "Products couldnt fetch"));
+                return ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", "Products couldnt fetch"));
             }
         }
     }

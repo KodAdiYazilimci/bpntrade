@@ -30,13 +30,18 @@ namespace BpnTrade.App.Adapters
             {
                 var getResult = await client.GetAsync(providerEndpoint, cancellationToken);
 
-                if (getResult.IsSuccessStatusCode)
+                if (getResult.IsSuccessStatusCode || getResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                 {
                     var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
 
                     var deserializedProducts = JsonConvert.DeserializeObject<ProductResponseDto>(content);
 
-                    return ResultRoot.Success<ProductResponseDto>(deserializedProducts);
+                    return
+                        deserializedProducts.Success
+                        ?
+                        ResultRoot.Success<ProductResponseDto>(deserializedProducts)
+                        :
+                        ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD001", deserializedProducts.Message));
 
                 }
 
