@@ -1,4 +1,10 @@
-﻿using System.Diagnostics;
+﻿using BpnTrade.Domain.Dto;
+using BpnTrade.Domain.Roots;
+
+using Newtonsoft.Json;
+
+using System.Diagnostics;
+using System.Net;
 
 namespace BpnTrade.Api.Middlewares
 {
@@ -55,20 +61,37 @@ namespace BpnTrade.Api.Middlewares
                 {
                     httpContext.Response.Body = newBody;
 
+
                     try
                     {
                         await _next(httpContext);
-                    }
-                    finally
-                    {
+
                         newBody.Seek(0, SeekOrigin.Begin);
                         response = await new StreamReader(httpContext.Response.Body).ReadToEndAsync();
                         newBody.Seek(0, SeekOrigin.Begin);
                         await newBody.CopyToAsync(originalBody);
                     }
+                    catch (Exception ex)
+                    {
+                        httpContext.Response.ContentType = "application/json";
+                        httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        await httpContext.Response.WriteAsync(
+                            JsonConvert
+                            .SerializeObject(
+                                ResultRoot.Failure(
+                                    new ErrorDto(
+                                        "UNX",
+                                        "Beklenmeyen bir hata oluştu",
+                                        new ErrorDto("EXC", $"{ex.Message} {ex.InnerException?.Message}")))));
+                        httpContext.Response.Body.Seek(0, SeekOrigin.Begin);
+                        await httpContext.Response.Body.CopyToAsync(originalBody);
+                        httpContext.Response.Body = originalBody;
+                    }
                 }
             }
-            catch { }
+            catch (Exception)
+            {
+            }
 
             httpContext.Response.OnCompleted(async () =>
             {
@@ -80,7 +103,7 @@ namespace BpnTrade.Api.Middlewares
                 {
                     // TODO: Buraya logger implemente edilecek
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
 
                 }
