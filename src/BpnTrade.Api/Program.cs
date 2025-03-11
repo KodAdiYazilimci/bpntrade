@@ -58,6 +58,7 @@ namespace BpnTrade.Api
 
             builder.Services.AddHttpClient();
             builder.Services.AddMemoryCache();
+            builder.Services.AddHttpContextAccessor();
 
             builder.Services.RegisterMapper();
             builder.Services.RegisterDbContext();
