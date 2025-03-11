@@ -22,7 +22,7 @@ namespace BpnTrade.Api.Endpoints
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-                dto.UserId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.ValueType == "UserId").Value;
+                dto.UserId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId").Value;
 
                 var result = await orderService.CreateAsync(dto, cancellationTokenSource.Token);
 
@@ -38,7 +38,7 @@ namespace BpnTrade.Api.Endpoints
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-                dto.UserId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.ValueType == "UserId").Value;
+                dto.UserId = httpContextAccessor.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "UserId").Value;
 
                 var result = await orderService.CompleteOrderAsync(dto, cancellationTokenSource.Token);
 

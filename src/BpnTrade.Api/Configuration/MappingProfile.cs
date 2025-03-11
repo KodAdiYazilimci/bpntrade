@@ -10,7 +10,7 @@ namespace BpnTrade.Api.Configuration
         public MappingProfile()
         {
             CreateMap<CreateOrderRequestDto, OrderEntity>()
-                .ForMember(x => x.UserId, y => y.MapFrom(z => z.CustomerId))
+                .ForMember(x => x.UserId, y => y.MapFrom(z => z.UserId))
                 .ForMember(
                     x => x.OrderItems, 
                     y => y.MapFrom(z => 
