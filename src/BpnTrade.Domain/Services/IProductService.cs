@@ -5,6 +5,6 @@ namespace BpnTrade.Domain.Services
 {
     public interface IProductService
     {
-        Task<ResultDto<List<ProductResponseDto>>> GetProductsAsync(CancellationToken cancellationToken = default);
+        Task<ResultDto<ProductResponseDto>> GetProductsAsync(CancellationToken cancellationToken = default);
     }
 }

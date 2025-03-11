@@ -5,6 +5,6 @@ namespace BpnTrade.Domain.Adapters
 {
     public interface IProductAdapter
     {
-        Task<ResultDto<List<ProductResponseDto>>> GetProductsAsync(CancellationToken cancellationToken = default);
+        Task<ResultDto<ProductResponseDto>> GetProductsAsync(CancellationToken cancellationToken = default);
     }
 }

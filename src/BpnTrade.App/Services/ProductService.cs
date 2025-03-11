@@ -21,11 +21,11 @@ namespace BpnTrade.App.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task<ResultDto<List<ProductResponseDto>>> GetProductsAsync(CancellationToken cancellationToken = default)
+        public async Task<ResultDto<ProductResponseDto>> GetProductsAsync(CancellationToken cancellationToken = default)
         {
-            if (_memoryCache.TryGetValue("Products", out List<ProductResponseDto> _products) && _products.Any())
+            if (_memoryCache.TryGetValue("Products", out ProductResponseDto _productResponse) && _productResponse != null)
             {
-                return ResultRoot.Success(_products);
+                return ResultRoot.Success(_productResponse);
             }
 
             var products = await _productAdapter.GetProductsAsync(cancellationToken);
@@ -33,9 +33,9 @@ namespace BpnTrade.App.Services
             return
                 products != null && products.IsSuccess
                 ?
-                ResultRoot.Success<List<ProductResponseDto>>(products.Data)
-                : 
-                ResultRoot.Failure<List<ProductResponseDto>>(products.Error);
+                ResultRoot.Success<ProductResponseDto>(products.Data)
+                :
+                ResultRoot.Failure<ProductResponseDto>(products.Error);
         }
     }
 }

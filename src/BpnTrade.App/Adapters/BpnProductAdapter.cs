@@ -22,7 +22,7 @@ namespace BpnTrade.App.Adapters
             _configuration = configuration;
         }
 
-        public async Task<ResultDto<List<ProductResponseDto>>> GetProductsAsync(CancellationToken cancellationToken = default)
+        public async Task<ResultDto<ProductResponseDto>> GetProductsAsync(CancellationToken cancellationToken = default)
         {
             var providerEndpoint = _configuration.GetSection("Providers:Bpn")["ProductsEndpointUri"];
 
@@ -34,13 +34,13 @@ namespace BpnTrade.App.Adapters
                 {
                     var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<List<ProductResponseDto>>(content);
+                    var deserializedProducts = JsonConvert.DeserializeObject<ProductResponseDto>(content);
 
-                    return ResultRoot.Success<List<ProductResponseDto>>(deserializedProducts);
+                    return ResultRoot.Success<ProductResponseDto>(deserializedProducts);
 
                 }
 
-                return ResultRoot.Failure<List<ProductResponseDto>>(new ErrorDto("PRD001", "Products couldnt fetch"));
+                return ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD001", "Products couldnt fetch"));
             }
         }
     }
