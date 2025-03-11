@@ -30,7 +30,7 @@ namespace BpnTrade.App.Adapters
 
         public async Task<ResultDto<PreOrderResponseDto>> PreOrderAsync(PreOrderRequestDto requestDto, CancellationToken cancellationToken = default)
         {
-            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["ProductsEndpointUri"];
+            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["PreOrderEndpointUri"];
 
             using (var client = _httpClientFactory.CreateClient())
             {
