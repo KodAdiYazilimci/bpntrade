@@ -1,5 +1,7 @@
 ﻿using BpnTrade.Domain.Services;
 
+using Microsoft.AspNetCore.Mvc;
+
 namespace BpnTrade.Api.Endpoints
 {
     public static class ProductEndpointMapper
@@ -12,9 +14,9 @@ namespace BpnTrade.Api.Endpoints
             return group;
         }
 
-        public static RouteGroupBuilder MapGetProductsEndpoint(this RouteGroupBuilder builder)
+        private static RouteGroupBuilder MapGetProductsEndpoint(this RouteGroupBuilder builder)
         {
-            builder.MapGet("/", async (IProductService productService) =>
+            builder.MapGet("/", async ([FromServices] IProductService productService) =>
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 

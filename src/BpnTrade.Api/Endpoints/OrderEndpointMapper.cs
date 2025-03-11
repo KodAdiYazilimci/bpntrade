@@ -1,6 +1,8 @@
 ﻿using BpnTrade.Domain.Dto.Order;
 using BpnTrade.Domain.Services;
 
+using Microsoft.AspNetCore.Mvc;
+
 namespace BpnTrade.Api.Endpoints
 {
     public static class OrderEndpointMapper
@@ -16,7 +18,7 @@ namespace BpnTrade.Api.Endpoints
 
         public static RouteGroupBuilder MapCreateOrderEndpoint(this RouteGroupBuilder builder)
         {
-            builder.MapPut("/", async (CreateOrderRequestDto dto, IOrderService orderService, HttpContextAccessor httpContextAccessor) =>
+            builder.MapPut("/", async ([FromBody] CreateOrderRequestDto dto, [FromServices] IOrderService orderService, [FromServices] IHttpContextAccessor httpContextAccessor) =>
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -32,7 +34,7 @@ namespace BpnTrade.Api.Endpoints
 
         public static RouteGroupBuilder MapCompleteOrderEndpoint(this RouteGroupBuilder builder)
         {
-            builder.MapPost("/", async (CompleteOrderRequestDto dto, IOrderService orderService, HttpContextAccessor httpContextAccessor) =>
+            builder.MapPost("/", async ([FromBody] CompleteOrderRequestDto dto, [FromServices] IOrderService orderService, [FromServices] IHttpContextAccessor httpContextAccessor) =>
             {
                 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
