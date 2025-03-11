@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
 
+using Polly;
+
 namespace BpnTrade.App.Adapters
 {
     public class BpnProductAdapter : IProductAdapter
@@ -26,27 +28,40 @@ namespace BpnTrade.App.Adapters
         {
             var providerEndpoint = _configuration.GetSection("Providers:Bpn")["ProductsEndpointUri"];
 
-            using (var client = _httpClientFactory.CreateClient())
+            var retry =
+               Policy
+               .HandleResult<ResultDto<ProductResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
+               .RetryAsync(3, (result, retryCount, context) =>
+               {
+
+               });
+
+            var result = await retry.ExecuteAsync(async () =>
             {
-                var getResult = await client.GetAsync(providerEndpoint, cancellationToken);
-
-                if (getResult.IsSuccessStatusCode || getResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                using (var client = _httpClientFactory.CreateClient())
                 {
-                    var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
+                    var getResult = await client.GetAsync(providerEndpoint, cancellationToken);
 
-                    var deserializedProducts = JsonConvert.DeserializeObject<ProductResponseDto>(content);
+                    if (getResult.IsSuccessStatusCode || getResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    {
+                        var content = await getResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    return
-                        deserializedProducts.Success
-                        ?
-                        ResultRoot.Success<ProductResponseDto>(deserializedProducts)
-                        :
-                        ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD001", deserializedProducts.Message));
+                        var deserializedProducts = JsonConvert.DeserializeObject<ProductResponseDto>(content);
 
+                        return
+                            deserializedProducts.Success
+                            ?
+                            ResultRoot.Success<ProductResponseDto>(deserializedProducts)
+                            :
+                            ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD001", deserializedProducts.Message));
+
+                    }
+
+                    return ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD001", "Products couldnt fetch"));
                 }
+            });
 
-                return ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD001", "Products couldnt fetch"));
-            }
+            return result;
         }
     }
 }

@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
+using Polly;
+
 using System.Text;
 
 namespace BpnTrade.App.Adapters
@@ -29,34 +31,47 @@ namespace BpnTrade.App.Adapters
         {
             var providerEndpoint = _configuration.GetSection("Providers:Bpn")["CancelEndpointUri"];
 
-            using (var client = _httpClientFactory.CreateClient())
+            var retry =
+               Policy
+               .HandleResult<ResultDto<CancelResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
+               .RetryAsync(3, (result, retryCount, context) =>
+               {
+
+               });
+
+            var result = await retry.ExecuteAsync(async () =>
             {
-                var postResult =
-                    await client.PostAsync(
-                        providerEndpoint,
-                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
-                        {
-                            ContractResolver = new CamelCasePropertyNamesContractResolver()
-                        }), Encoding.UTF8, "application/json"),
-                        cancellationToken);
-
-                if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                using (var client = _httpClientFactory.CreateClient())
                 {
-                    var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
+                    var postResult =
+                        await client.PostAsync(
+                            providerEndpoint,
+                            new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                            {
+                                ContractResolver = new CamelCasePropertyNamesContractResolver()
+                            }), Encoding.UTF8, "application/json"),
+                            cancellationToken);
 
-                    var deserializedCancellation = JsonConvert.DeserializeObject<CancelResponseDto>(content);
+                    if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    {
+                        var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    return 
-                        deserializedCancellation.Success
-                        ?
-                        ResultRoot.Success<CancelResponseDto>(deserializedCancellation)
-                        :
-                        ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", deserializedCancellation.Message));
+                        var deserializedCancellation = JsonConvert.DeserializeObject<CancelResponseDto>(content);
 
+                        return
+                            deserializedCancellation.Success
+                            ?
+                            ResultRoot.Success<CancelResponseDto>(deserializedCancellation)
+                            :
+                            ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", deserializedCancellation.Message));
+
+                    }
+
+                    return ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", "Products couldnt fetch"));
                 }
+            });
 
-                return ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", "Products couldnt fetch"));
-            }
+            return result;
         }
     }
 }

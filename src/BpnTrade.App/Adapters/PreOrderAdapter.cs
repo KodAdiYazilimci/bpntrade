@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
+using Polly;
+
 using System.Text;
 
 namespace BpnTrade.App.Adapters
@@ -29,33 +31,46 @@ namespace BpnTrade.App.Adapters
         {
             var providerEndpoint = _configuration.GetSection("Providers:Bpn")["PreOrderEndpointUri"];
 
-            using (var client = _httpClientFactory.CreateClient())
+            var retry =
+               Policy
+               .HandleResult<ResultDto<PreOrderResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
+               .RetryAsync(3, (result, retryCount, context) =>
+               {
+
+               });
+
+            var result = await retry.ExecuteAsync(async () =>
             {
-                var postResult =
-                    await client.PostAsync(
-                        providerEndpoint,
-                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
-                        {
-                            ContractResolver = new CamelCasePropertyNamesContractResolver()
-                        }), Encoding.UTF8, "application/json"),
-                        cancellationToken);
-
-                if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                using (var client = _httpClientFactory.CreateClient())
                 {
-                    var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
+                    var postResult =
+                        await client.PostAsync(
+                            providerEndpoint,
+                            new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                            {
+                                ContractResolver = new CamelCasePropertyNamesContractResolver()
+                            }), Encoding.UTF8, "application/json"),
+                            cancellationToken);
 
-                    var deserializedPreOrder = JsonConvert.DeserializeObject<PreOrderResponseDto>(content);
+                    if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
+                    {
+                        var content = await postResult.Content.ReadAsStringAsync(cancellationToken);
 
-                    return
-                        deserializedPreOrder.Success
-                        ?
-                        ResultRoot.Success<PreOrderResponseDto>(deserializedPreOrder)
-                        :
-                        ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", deserializedPreOrder.Message));
+                        var deserializedPreOrder = JsonConvert.DeserializeObject<PreOrderResponseDto>(content);
+
+                        return
+                            deserializedPreOrder.Success
+                            ?
+                            ResultRoot.Success<PreOrderResponseDto>(deserializedPreOrder)
+                            :
+                            ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", deserializedPreOrder.Message));
+                    }
+
+                    return ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", "Preorder couldnt started"));
                 }
+            });
 
-                return ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", "Preorder couldnt started"));
-            }
+            return result;
         }
     }
 }
