@@ -1,0 +1,6 @@
+services:
+  bpntrade.api:
+    image: ${DOCKER_REGISTRY-}bpntradeapi
+    build:
+      context: .
+      dockerfile: src/BpnTrade.Api/Dockerfile

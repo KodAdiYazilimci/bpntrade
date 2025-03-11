@@ -12,8 +12,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/BpnTrade.Api/BpnTrade.Api.csproj", "src/BpnTrade.Api/"]
-COPY ["src/BpnTrade.App/BpnTrade.App.csproj", "src/BpnTrade.App/"]
-COPY ["src/BpnTrade.Domain/BpnTrade.Domain.csproj", "src/BpnTrade.Domain/"]
 RUN dotnet restore "./src/BpnTrade.Api/BpnTrade.Api.csproj"
 COPY . .
 WORKDIR "/src/src/BpnTrade.Api"
