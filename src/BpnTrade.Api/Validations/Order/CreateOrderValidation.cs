@@ -15,9 +15,22 @@ namespace BpnTrade.Api.Validations.Order
 
     public class CreateOrderValidator : ValidatorBase<CreateOrderRequestDto, CreateOrderValidationRule>
     {
+        private static readonly object Lock = new object();
+        private static CreateOrderValidator instance = null;
         public static CreateOrderValidator Instance
         {
-            get { return new CreateOrderValidator(); }
+            get
+            {
+                lock (Lock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new CreateOrderValidator();
+                    }
+                }
+
+                return instance;
+            }
         }
     }
 }

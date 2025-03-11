@@ -14,9 +14,22 @@ namespace BpnTrade.Api.Validations.Order
 
     public class CompleteOrderValidator : ValidatorBase<CompleteOrderRequestDto, CompleteOrderValidationRule>
     {
+        private static readonly object Lock = new object();
+        private static CompleteOrderValidator instance = null;
         public static CompleteOrderValidator Instance
         {
-            get { return new CompleteOrderValidator(); }
+            get
+            {
+                lock (Lock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new CompleteOrderValidator();
+                    }
+                }
+
+                return instance;
+            }
         }
     }
 }
