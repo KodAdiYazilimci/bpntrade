@@ -10,6 +10,7 @@ namespace BpnTrade.Domain.EntityTypeConfigurations
         public void Configure(EntityTypeBuilder<OrderEntity> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.Property(x => x.UserId).HasMaxLength(128).IsRequired(true);
         }
     }
 }
