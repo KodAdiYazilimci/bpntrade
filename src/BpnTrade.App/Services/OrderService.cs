@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 
-using BpnTrade.App.Repositories.EF;
 using BpnTrade.Domain.Adapters;
 using BpnTrade.Domain.Dto;
 using BpnTrade.Domain.Dto.Integration;
@@ -44,7 +43,7 @@ namespace BpnTrade.App.Services
         {
             var orderRepository = _unitOfWork.GetRepository<IOrderRepository>();
 
-            var entity = await orderRepository.GetAsync(dto.OrderId);
+            var entity = await orderRepository.GetAsync(Convert.ToInt32(dto.OrderId));
 
             if (entity == null)
             {
@@ -68,6 +67,7 @@ namespace BpnTrade.App.Services
                 .Set<OrderItemEntity>()
                 .Where(x => x.OrderId == dto.OrderId && x.DeleteDate == null)
                 .AsNoTracking()
+                .Select(x => new { x.Quantity, x.UnitPrice })
                 .ToListAsync(cancellationToken);
 
             var totalAmount = orderItems.Sum(x => x.Quantity * x.UnitPrice);

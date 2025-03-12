@@ -8,7 +8,7 @@ namespace BpnTrade.Api.Validations.Order
     {
         public CompleteOrderValidationRule()
         {
-            RuleFor(x => x.OrderId).GreaterThan(0).WithErrorCode("VAL003").WithMessage("Geçersiz sipariş numarası");
+            RuleFor(x => x.OrderId).NotEmpty().When(x => int.TryParse(x.OrderId, out int _orderId)).WithErrorCode("VAL003").WithMessage("Geçersiz sipariş numarası");
         }
     }
 

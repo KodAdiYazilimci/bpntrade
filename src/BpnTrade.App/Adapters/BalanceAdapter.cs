@@ -61,7 +61,7 @@ namespace BpnTrade.App.Adapters
                         ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC001", deserializedBalance.Message));
                     }
 
-                    return ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC001", "Balance info couldnt fetch"));
+                    return ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC002", "Balance info couldnt fetch"));
                 }
             });
 

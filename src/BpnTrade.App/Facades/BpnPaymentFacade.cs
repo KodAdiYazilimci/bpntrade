@@ -1,9 +1,17 @@
 ﻿using BpnTrade.Domain.Adapters;
 using BpnTrade.Domain.Dto;
 using BpnTrade.Domain.Dto.Integration;
+using BpnTrade.Domain.Dto.Order;
 using BpnTrade.Domain.Dto.Payment;
+using BpnTrade.Domain.Entities;
 using BpnTrade.Domain.Facades;
+using BpnTrade.Domain.Persistence;
+using BpnTrade.Domain.Repositories.EF;
 using BpnTrade.Domain.Roots;
+
+using Microsoft.EntityFrameworkCore;
+
+using System.Threading;
 
 namespace BpnTrade.App.Facades
 {
@@ -13,21 +21,34 @@ namespace BpnTrade.App.Facades
         private readonly IPreOrderAdapter _preOrderAdapter;
         private readonly ICompleteAdapter _completeAdapter;
         private readonly ICancelAdapter _cancelAdapter;
+        private readonly IProductAdapter _productAdapter;
+        private readonly IUnitOfWork _unitOfWork;
 
         public BpnPaymentFacade(
             IBalanceAdapter balanceAdapter,
             IPreOrderAdapter preOrderAdapter,
             ICompleteAdapter completeAdapter,
-            ICancelAdapter cancelAdapter)
+            ICancelAdapter cancelAdapter,
+            IProductAdapter productAdapter,
+            IUnitOfWork unitOfWork)
         {
             _balanceAdapter = balanceAdapter;
             _preOrderAdapter = preOrderAdapter;
             _completeAdapter = completeAdapter;
             _cancelAdapter = cancelAdapter;
+            _productAdapter = productAdapter;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ResultDto<ProcessPaymentResponseDto>> ProcessPayment(ProcessPaymentRequestDto requestDto, CancellationToken cancellationToken = default)
         {
+            var validatedProducts = await ValidateProductsExists(requestDto, cancellationToken);
+
+            if (!validatedProducts)
+            {
+                return ResultRoot.Failure<ProcessPaymentResponseDto>(new ErrorDto("PRD003", "Ürün stoğu veya fiyatı artık geçerli değil"));
+            }
+
             var balanceCheckResult = await _balanceAdapter.GetUserBalanceAsync(new BalanceRequestDto()
             {
                 UserId = requestDto.UserId
@@ -68,6 +89,38 @@ namespace BpnTrade.App.Facades
             {
 
             });
+        }
+        private async Task<bool> ValidateProductsExists(ProcessPaymentRequestDto dto, CancellationToken cancellationToken = default)
+        {
+            var products = await _productAdapter.GetProductsAsync(cancellationToken);
+
+            if (products?.IsSuccess ?? false && (products?.Data?.Success ?? false) && (products?.Data?.Data?.Any() ?? false))
+            {
+                var orderItems = 
+                    await 
+                    _unitOfWork
+                    .Context
+                    .Set<OrderItemEntity>()
+                    .AsNoTracking()
+                    .Where(x => x.OrderId == dto.OrderId && x.DeleteDate == null)
+                    .Select(x => new { x.ProductId, x.UnitPrice, x.Quantity })
+                    .ToListAsync(cancellationToken);
+
+
+                foreach (var orderItem in orderItems)
+                {
+                    var product = products.Data.Data.Where(x => x.Id == orderItem.ProductId).FirstOrDefault();
+
+                    if (product != null || product.Price != orderItem.UnitPrice && product.Stock < orderItem.Quantity)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }
