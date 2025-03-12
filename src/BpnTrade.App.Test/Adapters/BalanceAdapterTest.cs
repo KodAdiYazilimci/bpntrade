@@ -1,13 +1,13 @@
 ﻿using BpnTrade.App.Adapters;
+using BpnTrade.App.Test.Mocks;
 using BpnTrade.Domain.Dto.Integration;
 
 using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
 
-using System.Text;
-using BpnTrade.App.Test.Mocks;
 using System.Net;
+using System.Text;
 
 namespace BpnTrade.App.Test.Adapters
 {

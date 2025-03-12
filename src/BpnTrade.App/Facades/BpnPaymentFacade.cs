@@ -1,17 +1,13 @@
 ﻿using BpnTrade.Domain.Adapters;
 using BpnTrade.Domain.Dto;
 using BpnTrade.Domain.Dto.Integration;
-using BpnTrade.Domain.Dto.Order;
 using BpnTrade.Domain.Dto.Payment;
 using BpnTrade.Domain.Entities;
 using BpnTrade.Domain.Facades;
 using BpnTrade.Domain.Persistence;
-using BpnTrade.Domain.Repositories.EF;
 using BpnTrade.Domain.Roots;
 
 using Microsoft.EntityFrameworkCore;
-
-using System.Threading;
 
 namespace BpnTrade.App.Facades
 {

@@ -4,8 +4,6 @@ using BpnTrade.Domain.Services;
 
 using Microsoft.AspNetCore.Mvc;
 
-using System.Threading;
-
 namespace BpnTrade.Api.Endpoints
 {
     public static class OrderEndpointMapper

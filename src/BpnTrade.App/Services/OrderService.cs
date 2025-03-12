@@ -25,6 +25,7 @@ namespace BpnTrade.App.Services
         private readonly IPaymentFacade _paymentFacade;
         private readonly IPreOrderAdapter _preOrderAdapter;
         private readonly ICancelAdapter _cancelAdapter;
+        private readonly IProductAdapter _productAdapter;
 
         public OrderService(
             IMapper mapper,
@@ -32,7 +33,8 @@ namespace BpnTrade.App.Services
             IMemoryCache memoryCache,
             IPaymentFacade paymentFacade,
             ICancelAdapter cancelAdapter,
-            IPreOrderAdapter preOrderAdapter)
+            IPreOrderAdapter preOrderAdapter,
+            IProductAdapter productAdapter)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
@@ -40,6 +42,7 @@ namespace BpnTrade.App.Services
             _paymentFacade = paymentFacade;
             _cancelAdapter = cancelAdapter;
             _preOrderAdapter = preOrderAdapter;
+            _productAdapter = productAdapter;
         }
 
         public async Task<ResultDto<CompleteOrderResponseDto>> CompleteOrderAsync(CompleteOrderRequestDto dto, CancellationToken cancellationToken = default)
@@ -122,14 +125,19 @@ namespace BpnTrade.App.Services
 
         public async Task<ResultDto<CreateOrderResponseDto>> CreateAsync(CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
         {
-            if (!ValidateProductsExists(dto))
+            var validateResult = await ValidateProductsExists(dto, cancellationToken);
+
+            if (!validateResult.IsSuccess)
+                return ResultRoot.Failure<CreateOrderResponseDto>(validateResult.Error);
+
+            if (!validateResult.Data)
                 return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRD002", "Bir ya da daha çok ürün bilgisi bulunamadı"));
 
-            var assignProductPriceResult = AssignProductPrices(dto);
+            var assignProductPriceResult = await AssignProductPrices(dto, cancellationToken);
 
             if (!assignProductPriceResult.IsSuccess)
             {
-                return assignProductPriceResult;
+                return ResultRoot.Failure<CreateOrderResponseDto>(assignProductPriceResult.Error);
             }
 
             var orderRepository = _unitOfWork.GetRepository<IOrderRepository>();
@@ -159,52 +167,78 @@ namespace BpnTrade.App.Services
             return ResultRoot.Success(resultDto);
         }
 
-        private bool ValidateProductsExists(CreateOrderRequestDto dto)
+        private async Task<ResultDto<bool>> ValidateProductsExists(CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
         {
-            if (_memoryCache.TryGetValue("Products", out ProductResponseDto _productResponse) && _productResponse != null)
+            var products = await GetProductsAsync(cancellationToken);
+
+            if (!products.IsSuccess || !products.Data.Success)
             {
-                foreach (var orderItem in dto.OrderItems)
-                {
-                    var existsAndValid =
-                        _productResponse
-                        .Data
-                        ?.Any(x =>
-                                x.Id == orderItem.ProductId.ToString()
-                                &&
-                                x.Currency == dto.Currency
-                                &&
-                                x.Price > 0);
-
-                    if (!(existsAndValid ?? false))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return ResultRoot.Failure<bool>(products.Error);
             }
 
-            return false;
+            foreach (var orderItem in dto.OrderItems)
+            {
+                var existsAndValid =
+                    products
+                    .Data
+                    ?.Data
+                    ?.Any(x =>
+                            x.Id == orderItem.ProductId.ToString()
+                            &&
+                            x.Currency == dto.Currency
+                            &&
+                            x.Price > 0);
+
+                if (!(existsAndValid ?? false))
+                {
+                    return ResultRoot.Success(false);
+                }
+            }
+
+            return ResultRoot.Success(true);
         }
 
-        private ResultDto<CreateOrderResponseDto> AssignProductPrices(CreateOrderRequestDto dto)
+        private async Task<ResultDto> AssignProductPrices(CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
+        {
+            var products = await GetProductsAsync(cancellationToken);
+
+            if (!products.IsSuccess || !products.Data.Success)
+            {
+                return ResultRoot.Failure(products.Error);
+            }
+
+            foreach (var orderItem in dto.OrderItems)
+            {
+                orderItem.UnitPrice = products.Data.Data.Where(x => x.Id == orderItem.ProductId).FirstOrDefault()?.Price ?? 0;
+
+                if (orderItem.UnitPrice == 0)
+                {
+                    return ResultRoot.Failure(new ErrorDto("PRC001", "Ürün fiyatı bulunamadı"));
+                }
+            }
+
+            return ResultRoot.Success();
+        }
+
+        private async Task<ResultDto<ProductResponseDto>> GetProductsAsync(CancellationToken cancellationToken = default)
         {
             if (_memoryCache.TryGetValue("Products", out ProductResponseDto _productResponse) && _productResponse != null)
             {
-                foreach (var orderItem in dto.OrderItems)
-                {
-                    orderItem.UnitPrice = _productResponse.Data.Where(x => x.Id == orderItem.ProductId).FirstOrDefault()?.Price ?? 0;
-
-                    if (orderItem.UnitPrice == 0)
-                    {
-                        return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRC001", "Ürün fiyatı bulunamadı"));
-                    }
-                }
-
-                return ResultRoot.Success(new CreateOrderResponseDto());
+                return ResultRoot.Success(_productResponse);
             }
-            else
-                return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRC001", "Ürün fiyatları bulunamadı"));
+
+            var productResponse = await _productAdapter.GetProductsAsync(cancellationToken);
+
+            if (productResponse != null && productResponse.IsSuccess && productResponse.Data.Success && productResponse.Data.Data != null)
+            {
+                _memoryCache.Set<ProductResponseDto>("Products", productResponse.Data, TimeSpan.FromSeconds(30));
+            }
+            else if (productResponse != null && (!productResponse.IsSuccess || !productResponse.Data.Success))
+            {
+                return ResultRoot.Failure<ProductResponseDto>(productResponse.Error);
+            }
+
+            return ResultRoot.Failure<ProductResponseDto>(new ErrorDto("PRD004", "Ürün bilgileri çekilemedi"));
         }
     }
 }
