@@ -20,7 +20,7 @@ namespace BpnTrade.App.Adapters
         private readonly IHttpClientFactory _httpClientFactory;
 
         public CancelAdapter(
-            IConfiguration configuration, 
+            IConfiguration configuration,
             IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
@@ -29,28 +29,28 @@ namespace BpnTrade.App.Adapters
 
         public async Task<ResultDto<CancelResponseDto>> CancelAsync(CancelRequestDto requestDto, CancellationToken cancellationToken = default)
         {
-            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["CancelEndpointUri"];
-
-            var retry =
-               Policy
-               .HandleResult<ResultDto<CancelResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
-               .RetryAsync(3, (result, retryCount, context) =>
-               {
-
-               });
-
-            var result = await retry.ExecuteAsync(async () =>
+            using (var client = _httpClientFactory.CreateClient())
             {
-                using (var client = _httpClientFactory.CreateClient())
+                var providerEndpoint = _configuration.GetSection("Providers:Bpn")["CancelEndpointUri"];
+
+                var retry =
+                   Policy
+                   .HandleResult<ResultDto<CancelResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
+                   .RetryAsync(3, (result, retryCount, context) =>
+                   {
+
+                   });
+
+                var result = await retry.ExecuteAsync(async () =>
                 {
                     var postResult =
-                        await client.PostAsync(
-                            providerEndpoint,
-                            new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
-                            {
-                                ContractResolver = new CamelCasePropertyNamesContractResolver()
-                            }), Encoding.UTF8, "application/json"),
-                            cancellationToken);
+                    await client.PostAsync(
+                        providerEndpoint,
+                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                                {
+                                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                                }), Encoding.UTF8, "application/json"),
+                        cancellationToken);
 
                     if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                     {
@@ -59,19 +59,19 @@ namespace BpnTrade.App.Adapters
                         var deserializedCancellation = JsonConvert.DeserializeObject<CancelResponseDto>(content);
 
                         return
-                            deserializedCancellation.Success
-                            ?
-                            ResultRoot.Success<CancelResponseDto>(deserializedCancellation)
-                            :
-                            ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", deserializedCancellation.Message));
+                        deserializedCancellation.Success
+                        ?
+                        ResultRoot.Success<CancelResponseDto>(deserializedCancellation)
+                        :
+                        ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", deserializedCancellation.Message));
 
                     }
 
                     return ResultRoot.Failure<CancelResponseDto>(new ErrorDto("CNC001", "Products couldnt fetch"));
-                }
-            });
+                });
 
-            return result;
+                return result;
+            }
         }
     }
 }

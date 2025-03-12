@@ -29,28 +29,28 @@ namespace BpnTrade.App.Adapters
 
         public async Task<ResultDto<PreOrderResponseDto>> PreOrderAsync(PreOrderRequestDto requestDto, CancellationToken cancellationToken = default)
         {
-            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["PreOrderEndpointUri"];
-
-            var retry =
-               Policy
-               .HandleResult<ResultDto<PreOrderResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
-               .RetryAsync(3, (result, retryCount, context) =>
-               {
-
-               });
-
-            var result = await retry.ExecuteAsync(async () =>
+            using (var client = _httpClientFactory.CreateClient())
             {
-                using (var client = _httpClientFactory.CreateClient())
+                var providerEndpoint = _configuration.GetSection("Providers:Bpn")["PreOrderEndpointUri"];
+
+                var retry =
+                   Policy
+                   .HandleResult<ResultDto<PreOrderResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
+                   .RetryAsync(3, (result, retryCount, context) =>
+                   {
+
+                   });
+
+                var result = await retry.ExecuteAsync(async () =>
                 {
                     var postResult =
-                        await client.PostAsync(
-                            providerEndpoint,
-                            new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
-                            {
-                                ContractResolver = new CamelCasePropertyNamesContractResolver()
-                            }), Encoding.UTF8, "application/json"),
-                            cancellationToken);
+                    await client.PostAsync(
+                        providerEndpoint,
+                        new StringContent(JsonConvert.SerializeObject(requestDto, new JsonSerializerSettings()
+                                {
+                                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                                }), Encoding.UTF8, "application/json"),
+                        cancellationToken);
 
                     if (postResult.IsSuccessStatusCode || postResult.StatusCode == System.Net.HttpStatusCode.BadRequest)
                     {
@@ -59,18 +59,18 @@ namespace BpnTrade.App.Adapters
                         var deserializedPreOrder = JsonConvert.DeserializeObject<PreOrderResponseDto>(content);
 
                         return
-                            deserializedPreOrder.Success
-                            ?
-                            ResultRoot.Success<PreOrderResponseDto>(deserializedPreOrder)
-                            :
-                            ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", deserializedPreOrder.Message));
+                        deserializedPreOrder.Success
+                        ?
+                        ResultRoot.Success<PreOrderResponseDto>(deserializedPreOrder)
+                        :
+                        ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", deserializedPreOrder.Message));
                     }
 
                     return ResultRoot.Failure<PreOrderResponseDto>(new ErrorDto("PRE001", "Preorder couldnt started"));
-                }
-            });
+                });
 
-            return result;
+                return result;
+            }
         }
     }
 }
