@@ -23,6 +23,7 @@ namespace BpnTrade.App.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMemoryCache _memoryCache;
         private readonly IPaymentFacade _paymentFacade;
+        private readonly IPreOrderAdapter _preOrderAdapter;
         private readonly ICancelAdapter _cancelAdapter;
 
         public OrderService(
@@ -30,13 +31,15 @@ namespace BpnTrade.App.Services
             IUnitOfWork unitOfWork,
             IMemoryCache memoryCache,
             IPaymentFacade paymentFacade,
-            ICancelAdapter cancelAdapter)
+            ICancelAdapter cancelAdapter,
+            IPreOrderAdapter preOrderAdapter)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _memoryCache = memoryCache;
             _paymentFacade = paymentFacade;
             _cancelAdapter = cancelAdapter;
+            _preOrderAdapter = preOrderAdapter;
         }
 
         public async Task<ResultDto<CompleteOrderResponseDto>> CompleteOrderAsync(CompleteOrderRequestDto dto, CancellationToken cancellationToken = default)
@@ -136,6 +139,17 @@ namespace BpnTrade.App.Services
             await orderRepository.CreateAsync(entity, cancellationToken);
 
             await _unitOfWork.SaveAsync(cancellationToken);
+
+            var preOrderResult = await _preOrderAdapter.PreOrderAsync(new PreOrderRequestDto()
+            {
+                Amount = dto.OrderItems.Sum(x => x.Quantity * x.UnitPrice),
+                OrderId = entity.Id.ToString()
+            }, cancellationToken);
+
+            if (!preOrderResult.IsSuccess || !preOrderResult.Data.Success)
+            {
+                return ResultRoot.Failure<CreateOrderResponseDto>(new ErrorDto("PRE001", "Ön sipariş başarısız oldu", preOrderResult.Error));
+            }
 
             var resultDto = new CreateOrderResponseDto
             {

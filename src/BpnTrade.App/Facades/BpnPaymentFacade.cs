@@ -64,15 +64,31 @@ namespace BpnTrade.App.Facades
                 return ResultRoot.Failure<ProcessPaymentResponseDto>(new ErrorDto("BLC001", "Yetersiz bakiye"));
             }
 
-            var preOrderResult = await _preOrderAdapter.PreOrderAsync(new PreOrderRequestDto()
+            // ön ödeme sonrası sepet tutarı değişmişse
+            if (balanceCheckResult.Data.Data.BlockedBalance != requestDto.Amount)
             {
-                OrderId = requestDto.OrderId,
-                Amount = requestDto.Amount
-            }, cancellationToken);
+                // önceki ön ödemeyi iptal et:
+                var cancelResult = await _cancelAdapter.CancelAsync(new CancelRequestDto()
+                {
+                    OrderId = requestDto.OrderId
+                }, cancellationToken);
 
-            if (!preOrderResult.IsSuccess || !preOrderResult.Data.Success)
-            {
-                return ResultRoot.Failure<ProcessPaymentResponseDto>(preOrderResult.Error);
+                if (!cancelResult.IsSuccess || !cancelResult.Data.Success)
+                {
+                    return ResultRoot.Failure<ProcessPaymentResponseDto>(cancelResult.Error);
+                }
+
+                // yenisini oluştur:
+                var preOrderResult = await _preOrderAdapter.PreOrderAsync(new PreOrderRequestDto()
+                {
+                    OrderId = requestDto.OrderId,
+                    Amount = requestDto.Amount
+                }, cancellationToken);
+
+                if (!preOrderResult.IsSuccess || !preOrderResult.Data.Success)
+                {
+                    return ResultRoot.Failure<ProcessPaymentResponseDto>(preOrderResult.Error);
+                }
             }
 
             var completeResult = await _completeAdapter.CompleteAsync(new CompleteRequestDto()
@@ -96,8 +112,8 @@ namespace BpnTrade.App.Facades
 
             if (products?.IsSuccess ?? false && (products?.Data?.Success ?? false) && (products?.Data?.Data?.Any() ?? false))
             {
-                var orderItems = 
-                    await 
+                var orderItems =
+                    await
                     _unitOfWork
                     .Context
                     .Set<OrderItemEntity>()
