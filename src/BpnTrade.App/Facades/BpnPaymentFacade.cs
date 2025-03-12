@@ -70,7 +70,7 @@ namespace BpnTrade.App.Facades
                 // önceki ön ödemeyi iptal et:
                 var cancelResult = await _cancelAdapter.CancelAsync(new CancelRequestDto()
                 {
-                    OrderId = requestDto.OrderId
+                    OrderId = requestDto.OrderId.ToString()
                 }, cancellationToken);
 
                 if (!cancelResult.IsSuccess || !cancelResult.Data.Success)
@@ -81,7 +81,7 @@ namespace BpnTrade.App.Facades
                 // yenisini oluştur:
                 var preOrderResult = await _preOrderAdapter.PreOrderAsync(new PreOrderRequestDto()
                 {
-                    OrderId = requestDto.OrderId,
+                    OrderId = requestDto.OrderId.ToString(),
                     Amount = requestDto.Amount
                 }, cancellationToken);
 
@@ -93,7 +93,7 @@ namespace BpnTrade.App.Facades
 
             var completeResult = await _completeAdapter.CompleteAsync(new CompleteRequestDto()
             {
-                OrderId = requestDto.OrderId
+                OrderId = requestDto.OrderId.ToString()
             }, cancellationToken);
 
             if (!completeResult.IsSuccess)
@@ -127,7 +127,7 @@ namespace BpnTrade.App.Facades
                 {
                     var product = products.Data.Data.Where(x => x.Id == orderItem.ProductId).FirstOrDefault();
 
-                    if (product != null || product.Price != orderItem.UnitPrice && product.Stock < orderItem.Quantity)
+                    if (product == null || product.Price != orderItem.UnitPrice || product.Stock < orderItem.Quantity)
                     {
                         return false;
                     }

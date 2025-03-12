@@ -10,6 +10,11 @@ namespace BpnTrade.App.Persistence
         public DbSet<OrderEntity> Orders { get; set; }
         public DbSet<OrderItemEntity> OrderItems { get; set; }
 
+        public BpnContext()
+        {
+            
+        }
+
         public BpnContext(DbContextOptions<BpnContext> dbContextOptions) : base(dbContextOptions)
         {
 

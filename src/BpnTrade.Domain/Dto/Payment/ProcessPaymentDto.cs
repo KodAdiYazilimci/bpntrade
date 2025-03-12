@@ -3,7 +3,7 @@
     public class ProcessPaymentRequestDto
     {
         public string UserId { get; set; }
-        public string OrderId { get; set; }
+        public int OrderId { get; set; }
         public decimal Amount { get; set; }
     }
 

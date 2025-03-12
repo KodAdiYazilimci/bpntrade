@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BpnTrade.Api", "src\BpnTrad
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{81DDED9D-158B-E303-5F62-77A2896D2A5A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BpnTrade.App.Test", "src\BpnTrade.App.Test\BpnTrade.App.Test.csproj", "{784E723B-8827-4B16-8769-4361F74F1005}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{81DDED9D-158B-E303-5F62-77A2896D2A5A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{784E723B-8827-4B16-8769-4361F74F1005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{784E723B-8827-4B16-8769-4361F74F1005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{784E723B-8827-4B16-8769-4361F74F1005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{784E723B-8827-4B16-8769-4361F74F1005}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,6 +49,7 @@ Global
 		{59027966-D9FE-454C-BAE8-44B43777A1F0} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{74AABDA1-D971-4AC7-AA31-A24B07EBB5B3} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{93E0DBF4-B647-4700-A42C-4D4EB23BE6A8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{784E723B-8827-4B16-8769-4361F74F1005} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {355405A7-8000-4EDB-AC54-C21E48319535}

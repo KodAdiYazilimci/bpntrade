@@ -27,19 +27,19 @@ namespace BpnTrade.App.Adapters
 
         public async Task<ResultDto<BalanceResponseDto>> GetUserBalanceAsync(BalanceRequestDto requestDto, CancellationToken cancellationToken = default)
         {
-            var providerEndpoint = _configuration.GetSection("Providers:Bpn")["UserBalanceEndpointUri"];
-
-            var retry =
-                Policy
-                .HandleResult<ResultDto<BalanceResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
-                .RetryAsync(3, (result, retryCount, context) =>
-                {
-
-                });
-
-            var result = await retry.ExecuteAsync(async () =>
+            using (var client = _httpClientFactory.CreateClient())
             {
-                using (var client = _httpClientFactory.CreateClient())
+                var providerEndpoint = _configuration.GetSection("Providers:Bpn")["UserBalanceEndpointUri"];
+
+                var retry =
+                    Policy
+                    .HandleResult<ResultDto<BalanceResponseDto>>(x => !x.IsSuccess || !x.Data.Success)
+                    .RetryAsync(3, (result, retryCount, context) =>
+                    {
+
+                    });
+
+                var result = await retry.ExecuteAsync(async () =>
                 {
                     QueryBuilder query = new QueryBuilder();
                     query.Append(new KeyValuePair<string, string>("userId", requestDto.UserId));
@@ -55,17 +55,18 @@ namespace BpnTrade.App.Adapters
                         var deserializedBalance = JsonConvert.DeserializeObject<BalanceResponseDto>(content);
 
                         return deserializedBalance.Success
-                        ?
-                        ResultRoot.Success<BalanceResponseDto>(deserializedBalance)
-                        :
-                        ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC001", deserializedBalance.Message));
+                    ?
+                    ResultRoot.Success<BalanceResponseDto>(deserializedBalance)
+                    :
+                    ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC001", deserializedBalance.Message));
                     }
 
                     return ResultRoot.Failure<BalanceResponseDto>(new ErrorDto("BLC002", "Balance info couldnt fetch"));
-                }
-            });
 
-            return result;
+                });
+
+                return result;
+            }
         }
     }
 }

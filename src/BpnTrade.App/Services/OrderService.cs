@@ -68,7 +68,7 @@ namespace BpnTrade.App.Services
                 _unitOfWork
                 .Context
                 .Set<OrderItemEntity>()
-                .Where(x => x.OrderId == dto.OrderId && x.DeleteDate == null)
+                .Where(x => x.OrderId == Convert.ToInt32(dto.OrderId) && x.DeleteDate == null)
                 .AsNoTracking()
                 .Select(x => new { x.Quantity, x.UnitPrice })
                 .ToListAsync(cancellationToken);
@@ -83,7 +83,7 @@ namespace BpnTrade.App.Services
             var paymentResult = await _paymentFacade.ProcessPayment(new ProcessPaymentRequestDto()
             {
                 Amount = totalAmount,
-                OrderId = entity.Id.ToString(),
+                OrderId = entity.Id,
                 UserId = dto.UserId
             }, cancellationToken);
 
