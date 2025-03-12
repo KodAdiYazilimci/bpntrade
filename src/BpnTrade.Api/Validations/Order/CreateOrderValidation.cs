@@ -9,7 +9,7 @@ namespace BpnTrade.Api.Validations.Order
         public CreateOrderValidationRule()
         {
             RuleFor(x => x.OrderItems).NotNull().WithErrorCode("VAL001").WithMessage("Sipariş öğeleri boş geçilemez");
-            RuleFor(x => x.OrderItems).Empty().WithErrorCode("VAL002").WithMessage("Sipariş öğeleri boş geçilemez");
+            RuleFor(x => x.OrderItems).NotEmpty().WithErrorCode("VAL002").WithMessage("Sipariş öğeleri boş geçilemez");
         }
     }
 
